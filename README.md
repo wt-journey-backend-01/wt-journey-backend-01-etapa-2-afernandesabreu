@@ -228,7 +228,7 @@ Exemplo:
 
 ### Endpoints
 - `GET /casos?agente_id=uuid` → Lista todos os casos atribuídos à um agente específico.
-- `GET /casos/:caso_id?agente_id=uuid` → Retorna os dados completos do agente responsável por um caso específico.
+- `GET /casos/:caso_id/agente` → Retorna os dados completos do agente responsável por um caso específico.
 - `GET /casos?status=aberto` → Lista todos os casos em aberto.
  - `GET /casos/search?q=homicídio` → Deve retornar todos os casos em que a palavra da query string aparece no **titulo** e/ou **descricao**, ou seja, uma pesquisa full-text
 
