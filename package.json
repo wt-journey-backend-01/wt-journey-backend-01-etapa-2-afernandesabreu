@@ -4,6 +4,7 @@
   "description": "[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/pktpEP6V) # Etapa 2: API para o Departamento de Polícia",
   "main": "server.js",
   "scripts": {
+    "start": "node --watch server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,6 +19,7 @@
   },
   "homepage": "https://github.com/wt-journey-backend-01/wt-journey-backend-01-etapa-2-afernandesabreu#readme",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "uuid": "^11.1.0"
   }
 }
