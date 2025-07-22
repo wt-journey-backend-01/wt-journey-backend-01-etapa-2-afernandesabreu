@@ -7,6 +7,6 @@ router.get('/:id', getAgenteById);
 router.post('/', createAgente);
 router.put('/:id', updateAgente);
 router.patch('/:id', patchAgente);
-router.delete('/:id', deleteAgent);
+router.delete('/:id', deleteAgente);
 
 module.exports = router;
