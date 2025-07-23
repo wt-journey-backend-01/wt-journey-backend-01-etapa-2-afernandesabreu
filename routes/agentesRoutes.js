@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllAgentes, getAgenteById, createAgente, updateAgente, patchAgente, deleteAgent } = require('../controllers/agentesController');
+const { getAllAgentes, getAgenteById, createAgente, updateAgente, patchAgente, deleteAgente } = require('../controllers/agentesController');
 
 router.get('/', getAllAgentes);
 router.get('/:id', getAgenteById);
