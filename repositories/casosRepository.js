@@ -35,7 +35,7 @@ const update = async (id, dados) => {
 
     casos[idx] = {
         ...casos[idx],
-        ...dados
+        ...dadosSemID
     };
     
     return casos[idx];
