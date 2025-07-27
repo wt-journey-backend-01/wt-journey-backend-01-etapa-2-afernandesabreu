@@ -2,7 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 
 casos = [
     {
-        "id": "f5fb2ad5-22a8-4cb4-90f2-8733517a0d46",
+        "id": uuidv4(),
         "titulo": "homicidio",
         "descricao": "Disparos foram reportados às 22:33 do dia 10/07/2007 na região do bairro União, resultando na morte da vítima, um homem de 45 anos.",
         "status": "aberto",
