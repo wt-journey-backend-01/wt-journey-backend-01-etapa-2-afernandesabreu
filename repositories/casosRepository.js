@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 
-casos = [
+const casos = [
     {
         "id": uuidv4(),
         "titulo": "homicidio",
