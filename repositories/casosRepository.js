@@ -30,6 +30,8 @@ const create = async (dados) => {
 const update = async (id, dados) => {
     const idx = casos.findIndex((caso) => caso.id ===id);
     if (idx === -1) return null;
+    
+    const { id: _, ...dadosSemID } = dados;
 
     casos[idx] = {
         ...casos[idx],
