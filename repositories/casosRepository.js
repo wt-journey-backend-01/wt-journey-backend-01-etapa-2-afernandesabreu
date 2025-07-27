@@ -10,7 +10,7 @@ casos = [
     }
 ]
 
-const findAll = () => {
+const findAll = async () => {
     return casos;
 };
 

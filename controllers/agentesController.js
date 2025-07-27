@@ -7,7 +7,7 @@ function validarAgente(dados) {
     }
     // Validar formato e data não futura para dataDeIncorporacao
     if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dataDeIncorporacao)) {
-        throw new Error('Data de incorporação deve estar no formato YYYY/MM/DD.');
+        throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
     }
     const data = new Date(dataDeIncorporacao);
     const hoje = new Date();
