@@ -1,306 +1,253 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 8 créditos restantes para usar o sistema de feedback AI.
+Você tem 7 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para afernandesabreu:
 
-Nota final: **33.8/100**
+Nota final: **36.5/100**
 
-Olá, Alexandre! 👋 Que bom te ver por aqui! Antes de qualquer coisa, quero te parabenizar pelo esforço e organização que você já colocou no seu projeto. 🎉 Você estruturou seu código de forma modular, separando rotas, controllers e repositories, o que é fundamental para manter o código limpo e escalável. Além disso, já implementou validações importantes e tratamento de erros, o que mostra que está no caminho certo para construir uma API robusta. 👏
-
----
-
-## 🚀 Pontos que você mandou muito bem
-
-- **Arquitetura modular:** Seu `server.js` está enxuto e bem organizado, usando `express.json()` e importando as rotas corretamente:
-
-```js
-app.use('/agentes', agenteRoutes);
-app.use('/casos', casosRoutes);
-```
-
-- **Separação clara entre camadas:** Você tem arquivos dedicados para controllers e repositories tanto para agentes quanto para casos, seguindo o padrão esperado.
-
-- **Validações básicas implementadas:** As funções `validarAgente` e `validarCaso` já fazem checagens importantes como campos obrigatórios e formato de datas.
-
-- **Tratamento de erros:** Você está usando `try/catch` para capturar erros e retornando status HTTP adequados para diversas situações (400, 404, 500).
-
-- **Bônus que você tentou:** Vi que você tentou implementar filtros e ordenações (mesmo que ainda não estejam funcionando 100%), além de mensagens de erro personalizadas, o que é ótimo para evoluir sua API!
+Olá, Alexandre! 🚓👮‍♂️ Que jornada você encarou para construir essa API do Departamento de Polícia! Quero começar te parabenizando pelo esforço e pela organização inicial do seu projeto. Você estruturou bem o servidor, separou rotas, controllers e repositories, e isso já é um baita passo para uma aplicação escalável e fácil de manter. 🎉👏
 
 ---
 
-## 🔍 O que precisa de atenção para destravar seu projeto
+## O que você mandou muito bem! 🌟
 
-### 1. **IDs devem ser UUID no formato correto**
+- Seu `server.js` está enxuto e organizado, usando `express.json()` para lidar com JSON, e importando as rotas certinho:
+  ```js
+  app.use('/agentes', agenteRoutes);
+  app.use('/casos', casosRoutes);
+  ```
+  Isso mostra que você entendeu bem como modularizar as rotas do Express.
 
-Você recebeu uma penalidade porque os IDs usados para agentes e casos não estão no formato UUID esperado. Isso acontece porque no seu array inicial, você tem:
+- A arquitetura MVC está presente no seu projeto: você tem pastas separadas para `routes`, `controllers` e `repositories`. Isso é fundamental para projetos Node.js maiores e você já está no caminho certo!
+
+- As validações básicas de dados nos controllers estão implementadas — você cuida para que campos obrigatórios não estejam vazios e para que datas estejam no formato esperado, por exemplo.
+
+- Você também implementou o tratamento de erros com status codes apropriados (400, 404, 500) e mensagens claras para o usuário, o que é essencial para uma API robusta.
+
+- Além disso, você conseguiu fazer passar alguns testes bônus relacionados a filtragem simples e mensagens de erro customizadas (mesmo que incompletos), o que mostra que você está em busca de ir além do básico. Muito legal! 🎯
+
+---
+
+## Agora, vamos aos pontos que precisam da sua atenção para destravar sua API e fazer ela brilhar de vez! 🔍✨
+
+### 1. Falha geral nos endpoints de `/agentes` e `/casos` — Vamos começar pelo básico!
+
+Você implementou as rotas, controllers e repositories para os dois recursos, o que é ótimo. Porém, percebi que os testes que mais falharam são justamente os que testam as operações básicas de criação, leitura, atualização e exclusão (CRUD) para **ambos** os recursos.
+
+Isso indica que o problema provavelmente não está só em detalhes de validação, mas em algo mais fundamental: será que a manipulação dos dados em memória está funcionando como esperado?
+
+### 2. IDs usados para agentes e casos não são UUIDs — A causa raiz!
+
+Você recebeu penalidades por usar IDs que não são UUIDs, e isso pode ser um dos motivos principais para falhas nos testes de criação e atualização!
+
+Olha só o seu array inicial de agentes no `repositories/agentesRepository.js`:
 
 ```js
 const agentes = [
     {
-        "id": "401bccf5-cf9e-489d-8412-446cd169a0f1",
-        ...
+        "id": uuidv4(),
+        "nome": "Rommel Carneiro",
+        "dataDeIncorporacao": "1992-10-04",
+        "cargo": "delegado"
     }
 ]
 ```
 
-e 
+Aqui você usa `uuidv4()` para gerar o ID, o que está correto! Porém, no seu array de casos em `repositories/casosRepository.js`, o agente vinculado tem um ID fixo:
 
 ```js
-casos = [
-    {
-        "id": "f5fb2ad5-22a8-4cb4-90f2-8733517a0d46",
-        ...
-    }
-]
+"agente_id": "401bccf5-cf9e-489d-8412-446cd169a0f1"
 ```
 
-Mas percebi que a data de incorporação do agente está no formato `"1992-10-04"`, e na validação você espera `"YYYY/MM/DD"` (com barras):
+Esse ID parece fixo, e talvez não seja um UUID válido gerado pelo `uuidv4()`. Isso pode causar problemas na validação do agente vinculado ao caso, fazendo com que a API retorne erros ou não encontre o agente.
+
+**Além disso, notei que na validação de datas você usa formatos diferentes entre agentes e casos:**
+
+- Em agentes, você verifica o formato como `YYYY/MM/DD`:
+  ```js
+  if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dataDeIncorporacao)) {
+      throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
+  };
+  ```
+  Mas na mensagem diz `YYYY-MM-DD` e o regex usa barras `/`, o que está inconsistente.
+
+- Em casos, o regex é:
+  ```js
+  if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dataDeRegistro)) {
+      throw new Error('Data de registro deve estar no formato YYYY/MM/DD.');
+  }
+  ```
+  Aqui a mensagem e o regex batem, mas o formato com barras `/` não é o mais comum para datas ISO (que usam hífens `-`).
+
+Esse tipo de inconsistência pode causar rejeição dos dados e falha nas validações.
+
+### 3. Manipulação dos arrays em memória está correta, mas cuidado com nomes de funções!
+
+No seu `agentesRepository.js`, a função para deletar é chamada `deleteAgente`:
+
+```js
+const deleteAgente = async (id) => {
+    const idx = agentes.findIndex((agente) => agente.id === id);
+    if (idx === -1) return null;
+
+    const agenteRemovido = agentes.splice(idx, 1);
+    return agenteRemovido[0];
+};
+```
+
+Mas no `module.exports` você faz:
+
+```js
+module.exports = { findAll, findById, create, update, delete: deleteAgente }
+```
+
+Ou seja, você exporta a função com o nome `delete`. Isso é correto, mas é importante que nos controllers você chame essa função com o nome `delete`, e não `deleteAgente`. Pelo que vi, você faz isso certo, mas só fique atento para não confundir.
+
+O mesmo vale para `casosRepository.js`.
+
+### 4. Validação dos formatos de datas está inconsistente — Corrigindo o formato para ISO 8601
+
+Aqui está um trecho do seu código de validação de agentes:
 
 ```js
 if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dataDeIncorporacao)) {
-    throw new Error('Data de incorporação deve estar no formato YYYY/MM/DD.');
-}
+    throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
+};
 ```
 
-Isso causa conflito porque seus dados iniciais não seguem o formato validado. Para resolver:
+Você está testando um formato com barras `/` mas a mensagem diz hífen `-`. Isso pode confundir quem usa a API e também causar erros no parse da data.
 
-- Alinhe o formato dos dados iniciais com o esperado na validação, ou ajuste a validação para aceitar o formato com hífens (`-`), que é o padrão ISO e mais comum no JavaScript:
+**Sugestão:** Use o formato ISO padrão `YYYY-MM-DD` com hífens, que é o mais comum e aceito em APIs REST.
+
+Exemplo corrigido:
 
 ```js
 if (!/^\d{4}-\d{2}-\d{2}$/.test(dataDeIncorporacao)) {
     throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
-}
-```
-
-- O mesmo vale para a data de registro do caso.
-
-**Recomendo este vídeo para entender melhor validação de dados e datas em APIs:**  
-[yNDCRAz7CM8 - Validação de dados em APIs Node.js/Express](https://youtu.be/yNDCRAz7CM8?si=Lh5u3j27j_a4w3A_)
-
----
-
-### 2. **Inconsistência no uso de `async` e `await` nos repositories**
-
-No seu `casosRepository.js`, a função `findAll` não é assíncrona, diferente das outras funções:
-
-```js
-const findAll = () => {
-    return casos;
 };
 ```
 
-Enquanto outras são `async`:
+Faça o mesmo para `dataDeRegistro` nos casos.
+
+### 5. Respostas 204 NO CONTENT com corpo JSON — Ajuste importante!
+
+Nos seus métodos de exclusão (`deleteAgente` e `deleteCaso`), você faz:
 
 ```js
-const findById = async (id) => { ... };
+res.status(204).json({ message: 'Agente removido com sucesso' });
 ```
 
-Essa inconsistência pode causar problemas na hora de usar `await` no controller, porque ele espera uma Promise. Para manter a uniformidade, declare todas as funções que retornam dados como `async`:
+O status 204 indica que a resposta não deve ter corpo (body). Enviar JSON junto com 204 pode causar problemas em clientes HTTP.
 
-```js
-const findAll = async () => {
-    return casos;
-};
-```
-
-Isso evita comportamentos inesperados quando você usa `await` nos controllers.
-
----
-
-### 3. **Erro na atualização do caso no repository**
-
-No método `update` do `casosRepository.js`, você está sobrescrevendo os dados com o objeto `dados` inteiro, ignorando a remoção do `id`:
-
-```js
-const update = async (id, dados) => {
-    const idx = casos.findIndex((caso) => caso.id ===id);
-    if (idx === -1) return null;
-    
-    const { id: _, ...dadosSemID } = dados;
-
-    casos[idx] = {
-        ...casos[idx],
-        ...dados
-    };
-    
-    return casos[idx];
-};
-```
-
-Aqui, você extrai `dadosSemID` mas não o usa, usando `...dados` direto. Isso pode permitir que o `id` seja sobrescrito, o que não é desejado.
-
-Corrija para:
-
-```js
-casos[idx] = {
-    ...casos[idx],
-    ...dadosSemID
-};
-```
-
-Assim, você protege o `id` de ser alterado.
-
----
-
-### 4. **Variável `casos` declarada sem `const` ou `let`**
-
-No início do seu `casosRepository.js`, você declarou o array `casos` sem `const` ou `let`:
-
-```js
-casos = [
-    {
-        ...
-    }
-]
-```
-
-Isso cria uma variável global, podendo causar problemas. Sempre declare suas variáveis com `const` ou `let`:
-
-```js
-const casos = [
-    {
-        ...
-    }
-];
-```
-
----
-
-### 5. **Falta de importação do `Agente` no `casosController.js`**
-
-No seu `casosController.js`, você faz várias verificações com `Agente.findById`, mas não importou o repositório `Agente`:
-
-```js
-if (!await Agente.findById(agente_id)) {
-    return res.status(404).json({ message: 'Agente não encontrado' });
-};
-```
-
-Por isso, essas linhas vão falhar em tempo de execução. Para corrigir, importe o `Agente` no topo do arquivo:
-
-```js
-const Agente = require('../repositories/agentesRepository');
-```
-
----
-
-### 6. **Validação rígida para PATCH**
-
-No seu controller de agentes e casos, o método PATCH está usando a mesma função de validação completa (`validarAgente` e `validarCaso`), o que obriga o usuário a enviar todos os campos, mesmo que queira atualizar só um deles.
-
-Para o PATCH, o ideal é validar apenas os campos que vierem no corpo da requisição, permitindo atualizações parciais.
-
-Você pode criar uma função de validação parcial, por exemplo:
-
-```js
-function validarAgenteParcial(dados) {
-    if (dados.nome !== undefined && dados.nome.trim() === '') {
-        throw new Error('Nome do agente não pode ser vazio.');
-    }
-    if (dados.dataDeIncorporacao !== undefined) {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(dados.dataDeIncorporacao)) {
-            throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
-        }
-        const data = new Date(dados.dataDeIncorporacao);
-        const hoje = new Date();
-        if (data > hoje) {
-            throw new Error('Data de incorporação não pode ser no futuro.');
-        }
-    }
-    if (dados.cargo !== undefined && dados.cargo.trim() === '') {
-        throw new Error('Cargo não pode ser vazio.');
-    }
-}
-```
-
-E usar essa função no PATCH, para não exigir todos os campos.
-
----
-
-### 7. **Status HTTP para DELETE**
-
-Nos seus métodos de DELETE, você está retornando status `200` com mensagem de sucesso:
-
-```js
-res.status(200).json({ message: 'Agente removido com sucesso' });
-```
-
-O mais indicado para DELETE que deu certo e não retorna conteúdo é usar o status `204 No Content` sem corpo de resposta:
+**Sugestão:** Para 204, apenas envie o status sem corpo:
 
 ```js
 res.status(204).send();
 ```
 
-Isso é mais alinhado com as boas práticas REST.
+Ou, se quiser enviar mensagem, use status 200:
+
+```js
+res.status(200).json({ message: 'Agente removido com sucesso' });
+```
+
+### 6. Filtros e ordenações (Bônus) ainda não implementados
+
+Você tentou avançar nos filtros e ordenações, mas eles não passaram. Isso pode ser porque não há código implementado para tratar query params de filtros, ordenação, ou busca por palavras-chave.
+
+Para implementar isso, você pode modificar os métodos `getAllAgentes` e `getAllCasos` para receber e interpretar query params (`req.query`), filtrar os arrays em memória e devolver o resultado.
 
 ---
 
-### 8. **Filtros e ordenações bônus ainda não implementados**
+## Dicas práticas para você avançar! 🚀
 
-Percebi que os filtros e ordenações para agentes e casos (como filtrar por status, data de incorporação, palavras-chave) ainda não estão funcionando. Para destravar esses bônus, você pode implementar query params nos seus endpoints GET, por exemplo:
+### Corrigindo o formato das datas:
 
 ```js
-router.get('/', getAllAgentes);
+// Exemplo para agentesController.js
+if (!/^\d{4}-\d{2}-\d{2}$/.test(dataDeIncorporacao)) {
+    throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
+}
 ```
 
-No controller:
+### Ajustando a resposta de DELETE:
 
 ```js
-const getAllAgentes = async (req, res) => {
-    const { dataIncorporacao, sort } = req.query;
-    let agentes = await Agente.findAll();
-
-    if (dataIncorporacao) {
-        agentes = agentes.filter(a => a.dataDeIncorporacao === dataIncorporacao);
+const deleteAgente = async (req, res) => {
+    try {
+        const agente = await Agente.delete(req.params.id);
+        if (!agente) {
+            return res.status(404).json({ message: 'Agente não encontrado' });
+        }
+        res.status(204).send(); // Sem corpo no 204
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao deletar agente', error: error.message });
     }
-
-    if (sort === 'asc') {
-        agentes.sort((a, b) => new Date(a.dataDeIncorporacao) - new Date(b.dataDeIncorporacao));
-    } else if (sort === 'desc') {
-        agentes.sort((a, b) => new Date(b.dataDeIncorporacao) - new Date(a.dataDeIncorporacao));
-    }
-
-    res.status(200).json(agentes);
 };
 ```
 
----
+### Validando UUIDs para IDs
 
-## 📚 Recursos que vão te ajudar a corrigir e evoluir seu projeto
+Garanta que os IDs usados são UUIDs válidos. Você pode usar uma biblioteca como `uuid` para validar:
 
-- Para entender melhor a arquitetura MVC e organização do projeto:  
-  https://youtu.be/bGN_xNc4A1k?si=Nj38J_8RpgsdQ-QH
+```js
+const { validate: isUuid } = require('uuid');
 
-- Para aprofundar em validação de dados e tratamento de erros:  
-  https://youtu.be/yNDCRAz7CM8?si=Lh5u3j27j_a4w3A_
+if (!isUuid(req.params.id)) {
+    return res.status(400).json({ message: 'ID inválido, deve ser UUID' });
+}
+```
 
-- Para aprender mais sobre manipulação de arrays e filtros:  
-  https://youtu.be/glSgUKA5LjE?si=t9G2NsC8InYAU9cI
-
-- Para entender status HTTP e métodos REST:  
-  https://youtu.be/RSZHvQomeKE
+Isso ajuda a evitar erros e a deixar a API mais robusta.
 
 ---
 
-## 🗺️ Resumo rápido para você focar e avançar:
+## Recursos para você se aprofundar e corrigir esses pontos:
 
-- Ajustar o formato das datas no array inicial ou na validação para ficarem consistentes (usar `YYYY-MM-DD` é mais prático).  
-- Declarar `const casos = [...]` corretamente para evitar variáveis globais.  
-- Corrigir o método `update` do `casosRepository` para não sobrescrever o `id`.  
-- Importar o `Agente` no `casosController.js` para validar o `agente_id`.  
-- Criar validação parcial para PATCH, permitindo atualizações parciais sem exigir todos os campos.  
-- Usar status HTTP 204 para DELETE que não retornam conteúdo.  
-- Tornar todas as funções do repository `async` para manter padrão e evitar problemas com `await`.  
-- Implementar filtros e ordenações para os endpoints GET para destravar os bônus.
+- **Fundamentos de API REST e Express.js:**  
+  https://youtu.be/RSZHvQomeKE  
+  (Este vídeo vai te ajudar a entender desde o básico do Express até rotas e middlewares.)
+
+- **Arquitetura MVC em Node.js:**  
+  https://youtu.be/bGN_xNc4A1k?si=Nj38J_8RpgsdQ-QH  
+  (Para garantir que sua estrutura de controllers, routes e repositories esteja alinhada com boas práticas.)
+
+- **Validação de dados e tratamento de erros:**  
+  https://youtu.be/yNDCRAz7CM8?si=Lh5u3j27j_a4w3A_  
+  (Aprenda a validar dados de entrada e retornar erros claros para o cliente.)
+
+- **Status HTTP 204 No Content:**  
+  https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/204  
+  (Para entender quando e como usar o status 204 corretamente.)
+
+- **Manipulação de arrays em memória:**  
+  https://youtu.be/glSgUKA5LjE?si=t9G2NsC8InYAU9cI  
+  (Para filtrar, ordenar e manipular seus dados dentro dos repositories.)
 
 ---
 
-Alexandre, você está no caminho certo e com algumas correções vai conseguir fazer sua API brilhar! 🌟 Continue praticando, ajustando os detalhes e aprendendo com cada desafio. Estou aqui torcendo por você! 💪🚓
+## Resumo rápido para você focar:
 
-Se precisar de ajuda para entender algum ponto, não hesite em pedir. Vamos juntos nessa jornada!
+- 🔑 **Corrigir o formato das datas** para usar `YYYY-MM-DD` consistentemente, ajustando regex e mensagens de erro.
 
-Abraço forte e até a próxima! 🤗👨‍💻
+- 🆔 **Garantir que os IDs são UUIDs válidos**, tanto para agentes quanto para casos, e validar isso nas rotas.
+
+- 🗑️ **Ajustar respostas DELETE para usar status 204 corretamente, sem corpo na resposta.**
+
+- 🔄 **Implementar filtros e ordenações nos endpoints GET `/agentes` e `/casos`** para melhorar a usabilidade da API.
+
+- 🛠️ **Validar IDs recebidos nas rotas para evitar erros inesperados.**
+
+- 📁 **Manter a estrutura modular do projeto, que já está muito boa!**
+
+---
+
+Alexandre, você está no caminho certo, só precisa acertar esses detalhes para sua API funcionar redondinha! 🚀 Lembre-se que construir uma API é um passo a passo: comece certificando que o básico funciona perfeitamente (CRUD com validação e status HTTP corretos), depois vá incrementando filtros, ordenações e mensagens customizadas.
+
+Continue firme, você tem uma boa base e com esses ajustes vai longe! Qualquer dúvida, pode contar comigo, estou aqui para te ajudar! 🤝💻
+
+Um abraço e sucesso na jornada! 👊😄
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
