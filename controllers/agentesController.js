@@ -4,20 +4,39 @@ function validarAgente(dados) {
     const { nome, dataDeIncorporacao, cargo } = dados;
     if (!nome || nome.trim() === '') {
         throw new Error('Nome do agente é obrigatório e não pode ser vazio.');
-    }
+    };
     // Validar formato e data não futura para dataDeIncorporacao
     if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dataDeIncorporacao)) {
         throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
-    }
+    };
     const data = new Date(dataDeIncorporacao);
     const hoje = new Date();
     if (data > hoje) {
         throw new Error('Data de incorporação não pode ser no futuro.');
-    }
+    };
     if (!cargo || cargo.trim() === '') {
         throw new Error('Cargo é obrigatório e não pode ser vazio.');
-    }
-}
+    };
+};
+
+function validarAgenteParcial(dados) {
+    if (dados.nome !== undefined && dados.nome.trim() === '') {
+        throw new Error('Nome do agente não pode ser vazio.');
+    };
+    if (dados.dataDeIncorporacao !== undefined) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dados.dataDeIncorporacao)) {
+            throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
+        };
+        const data = new Date(dados.dataDeIncorporacao);
+        const hoje = new Date();
+        if (data > hoje) {
+            throw new Error('Data de incorporação não pode ser no futuro.');
+        };
+    };
+    if (dados.cargo !== undefined && dados.cargo.trim() === '') {
+        throw new Error('Cargo não pode ser vazio.');
+    };
+};
 
 const getAllAgentes = async (req, res) => {
     try {
@@ -70,7 +89,7 @@ const patchAgente = async (req, res) => {
         if (!existeAgente) {
             return res.status(404).json({ message: 'Agente não encontrado' });
         };
-        validarAgente(req.body);
+        validarAgenteParcial(req.body);
         const agente = await Agente.patch(req.params.id, req.body);
         res.status(200).json(agente);
     } catch (error) {
@@ -84,7 +103,7 @@ const deleteAgente = async (req, res) => {
         if (!agente) {
             return res.status(404).json({ message: 'Agente não encontrado' });
         };
-        res.status(200).json({ message: 'Agente removido com sucesso' });
+        res.status(204).json({ message: 'Agente removido com sucesso' });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao deletar agente', error: error.message });
     };
