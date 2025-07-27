@@ -1,4 +1,5 @@
 const Caso = require('../repositories/casosRepository');
+const Agente = require('../repositories/agentesRepository');
 
 function validarCaso(dados) {
     const { titulo, dataDeRegistro, status } = dados;
@@ -7,7 +8,6 @@ function validarCaso(dados) {
         throw new Error('Título do caso é obrigatório e não pode ser vazio.');
     }
 
-    // Validar formato e data não futura para dataDeRegistro
     if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dataDeRegistro)) {
         throw new Error('Data de registro deve estar no formato YYYY/MM/DD.');
     }
@@ -19,6 +19,25 @@ function validarCaso(dados) {
 
     if (!status || status.trim() === '') {
         throw new Error('Status do caso é obrigatório e não pode ser vazio.');
+    }
+}
+
+function validarCasoParcial(dados) {
+    if (dados.titulo !== undefined && dados.titulo.trim() === '') {
+        throw new Error('Título do caso não pode ser vazio.');
+    }
+    if (dados.dataDeRegistro !== undefined) {
+        if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dados.dataDeRegistro)) {
+            throw new Error('Data de registro deve estar no formato YYYY/MM/DD.');
+        }
+        const data = new Date(dados.dataDeRegistro);
+        const hoje = new Date();
+        if (data > hoje) {
+            throw new Error('Data de registro não pode ser no futuro.');
+        }
+    }
+    if (dados.status !== undefined && dados.status.trim() === '') {
+        throw new Error('Status do caso não pode ser vazio.');
     }
 }
 
@@ -85,6 +104,7 @@ const patchCaso = async (req, res) => {
         if (!existeCaso) {
             return res.status(404).json({ message: 'Caso não encontrado' });
         };
+        validarCasoParcial(req.body); 
         const caso = await Caso.patch(req.params.id, req.body);
         res.status(200).json(caso);
     } catch (error) {
@@ -98,7 +118,7 @@ const deleteCaso = async (req, res) => {
         if (!caso) {
             return res.status(404).json({ message: 'Caso não encontrado' });
         };
-        res.status(200).json({ message: 'Caso removido com sucesso' });
+        res.status(204).json({ message: 'Caso removido com sucesso' });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao deletar caso' });
     };
