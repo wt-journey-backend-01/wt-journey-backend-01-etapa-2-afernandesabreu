@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const agente_id = 'a1b2c3d4-e5f6-7890-abcd-1234567890ab';
+const agente_id = uuidv4();
 
 const agentes = [
     {
