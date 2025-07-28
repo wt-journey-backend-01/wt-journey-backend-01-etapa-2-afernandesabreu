@@ -97,8 +97,10 @@ const updateCaso = async (req, res) => {
 const patchCaso = async (req, res) => {
     try {
         const { agente_id } = req.body;
-        if (!await Agente.findById(agente_id)) {
-            return res.status(404).json({ message: 'Agente não encontrado' });
+        if (agente_id !== undefined){
+            if (!await Agente.findById(agente_id)) {
+                return res.status(404).json({ message: 'Agente não encontrado' });
+            };
         };
         const existeCaso = await Caso.findById(req.params.id);
         if (!existeCaso) {
