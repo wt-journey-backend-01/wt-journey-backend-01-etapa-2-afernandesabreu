@@ -120,7 +120,7 @@ const deleteCaso = async (req, res) => {
         if (!caso) {
             return res.status(404).json({ message: 'Caso não encontrado' });
         };
-        res.status(204).json({ message: 'Caso removido com sucesso' });
+        res.status(200).json({ message: 'Caso removido com sucesso' });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao deletar caso', error: error.message });
     };
