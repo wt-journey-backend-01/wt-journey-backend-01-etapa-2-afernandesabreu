@@ -1,284 +1,214 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 6 créditos restantes para usar o sistema de feedback AI.
+Você tem 5 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para afernandesabreu:
 
-Nota final: **36.5/100**
+Nota final: **69.7/100**
 
-# Feedback para Alexandre Fernandes Abreu 🚔✨
+# Feedback para afernandesabreu 🚓✨
 
-Olá, Alexandre! Primeiro, parabéns pelo esforço e dedicação em construir essa API para o Departamento de Polícia! 🚀 Eu dei uma boa olhada no seu código e na organização do projeto, e tem várias coisas legais que você já fez muito bem, além de pontos importantes para a gente focar e aprimorar juntos. Vamos nessa?
-
----
-
-## 🎉 Pontos Positivos que Merecem Destaque
-
-- Você estruturou seu projeto de forma modular, separando rotas, controllers e repositories, o que é ótimo para manter o código organizado e escalável. Isso mostra que você está no caminho certo para uma arquitetura profissional! 👏
-
-- O uso do middleware `express.json()` está correto, garantindo que o corpo das requisições seja interpretado como JSON.
-
-- Você implementou as validações básicas para os dados de agentes e casos, tanto para criação quanto para atualização parcial, com mensagens de erro claras. Isso é fundamental para manter a integridade dos dados! 💪
-
-- O tratamento de erros com o middleware `errorHandler` está presente, e você usou a classe `AppError` para facilitar a criação de erros customizados — isso é um ótimo passo para uma API robusta.
-
-- Também vi que você implementou os endpoints básicos para os recursos `/agentes` e `/casos` com todos os métodos HTTP principais (GET, POST, PUT, PATCH, DELETE). Excelente! 🎯
-
-- Você conseguiu implementar os testes de status 404 para recursos inexistentes e erros 400 para payloads inválidos, que são essenciais para a usabilidade da API.
-
-- Sobre os bônus, você tentou implementar filtros e mensagens de erro customizadas, o que demonstra vontade de ir além. Embora ainda precise de ajustes, seu esforço é muito válido! 👏
+Olá, Alexandre! Primeiro, quero parabenizá-lo pelo esforço e pela estruturação do seu projeto. 🎉 Você organizou muito bem os arquivos, separou controllers, repositories e rotas, e já implementou muitos endpoints com validações importantes. Isso mostra que você está no caminho certo para construir uma API RESTful robusta e modular! 👏
 
 ---
 
-## 🚨 Pontos de Atenção e Como Corrigi-los (Vamos lá!)
+## 🎯 O que você mandou bem (e merece aplausos! 👏)
 
-### 1. **Formato das Datas no Validador**
-
-No seu `controllers/agentesController.js`, a validação da data de incorporação está com regex que espera o formato `YYYY/MM/DD` (com barras), mas no array inicial de agentes e no restante do código você usa `YYYY-MM-DD` (com hífen):
-
-```js
-if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dataDeIncorporacao)) {
-    throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
-};
-```
-
-Aqui você está testando barras `/` mas a mensagem diz hífen `-`. No array inicial:
-
-```js
-"dataDeIncorporacao": "1992-10-04",
-```
-
-Tem hífen. Isso causa falha na validação e impede a criação/atualização correta.
-
-**Como corrigir:** Ajuste a regex para aceitar o formato com hífen:
-
-```js
-if (!/^\d{4}-\d{2}-\d{2}$/.test(dataDeIncorporacao)) {
-    throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
-};
-```
-
-O mesmo vale para o validador parcial `validarAgenteParcial`.
+- **Organização do projeto**: Seu projeto está bem modularizado, com pastas bem definidas para controllers, repositories, routes e utils. Isso facilita muito a manutenção e evolução do código.
+- **Implementação dos endpoints dos agentes**: Vi que você implementou todos os métodos HTTP para `/agentes` e eles estão funcionando corretamente, incluindo validações e tratamento de erros.
+- **Validações sólidas para agentes e casos**: Suas funções `validarAgente` e `validarCaso` estão bem feitas, com checagem de campos obrigatórios, formato de data e datas futuras.
+- **Tratamento de erros personalizado**: Você usa um middleware de erro (`errorHandler`) e uma classe `AppError`, o que é uma ótima prática para manter seu código limpo e consistente.
+- **Swagger configurado**: A documentação via Swagger está presente, o que é excelente para qualquer API.
+- **Boas respostas HTTP**: Você usa corretamente status como 200, 201, 204, 400 e 404 na maioria dos casos.
+- **Validação do agente na criação e atualização de casos**: Ótima sacada em verificar se o agente existe antes de criar ou atualizar um caso.
 
 ---
 
-### 2. **Formato das Datas no Validador de Casos**
+## 🔎 Pontos que precisam de atenção para destravar sua API
 
-No `controllers/casosController.js`, você está validando datas com regex que exige barras `/`:
+### 1. Problema fundamental com os endpoints de `/casos`
+
+Percebi que vários testes relacionados ao recurso `/casos` não passaram, especialmente os que envolvem atualização parcial (PATCH), criação e listagem. Vamos investigar juntos o que pode estar acontecendo.
+
+Você tem os arquivos de rotas (`routes/casosRoutes.js`) e controllers (`controllers/casosController.js`) para os casos, o que é ótimo. Mas ao olhar com mais cuidado, notei que no seu `controllers/casosController.js`, os métodos `patchCaso` e `updateCaso` fazem validação do `agente_id` assim:
 
 ```js
-if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dataDeRegistro)) {
-    throw new Error('Data de registro deve estar no formato YYYY/MM/DD.');
+const patchCaso = async (req, res) => {
+    try {
+        const { agente_id } = req.body;
+        if (!await Agente.findById(agente_id)) {
+            return res.status(404).json({ message: 'Agente não encontrado' });
+        };
+        // ...
+```
+
+Aqui está o primeiro ponto de atenção: **nem sempre o `agente_id` estará presente em um PATCH parcial**. Se o cliente quiser atualizar só o `status` do caso, por exemplo, sem mexer no `agente_id`, seu código vai tentar validar um `agente_id` `undefined` e retornar erro 404, o que não é correto.
+
+**Solução:** Você precisa condicionar essa validação para só rodar quando o `agente_id` for enviado no corpo da requisição:
+
+```js
+if (agente_id !== undefined) {
+  if (!await Agente.findById(agente_id)) {
+    return res.status(404).json({ message: 'Agente não encontrado' });
+  }
 }
 ```
 
-Mas o objeto inicial de casos tem a data no formato com hífens? No seu array inicial, você não tem o campo `dataDeRegistro` explicitamente, mas a validação espera barras, o que é inconsistente.
+Assim, você permite atualizações parciais sem exigir o `agente_id`.
 
-**Sugestão:** Use o formato com hífens `YYYY-MM-DD` para padronizar, pois é o mais comum e mais fácil de manipular com `Date` em JavaScript.
-
-Altere para:
-
-```js
-if (!/^\d{4}-\d{2}-\d{2}$/.test(dataDeRegistro)) {
-    throw new Error('Data de registro deve estar no formato YYYY-MM-DD.');
-}
-```
-
-E faça o mesmo no validador parcial `validarCasoParcial`.
+O mesmo vale para o método `updateCaso` (PUT), embora aí o `agente_id` seja obrigatório, então a validação pode ficar como está.
 
 ---
 
-### 3. **Uso Consistente de UUIDs para IDs**
+### 2. Penalidade: Você permite alteração do ID do agente via PUT
 
-Percebi que você está usando `uuidv4()` para gerar IDs novos, o que é ótimo, mas no array inicial de casos, o campo `agente_id` tem um valor fixo que provavelmente não é um UUID válido gerado pelo `uuidv4()` do seu projeto:
+Ao analisar seu controller de agentes, notei que no método `updateAgente` você faz:
 
 ```js
-"agente_id": "401bccf5-cf9e-489d-8412-446cd169a0f1"
+const update = async (id, dados) => {
+    const idx = agentes.findIndex((agente) => agente.id === id);
+    if (idx === -1) return null;
+
+    const { id: _, ...dadosSemID } = dados;
+
+    agentes[idx] = {
+        ...agentes[idx],
+        ...dadosSemID
+    };
+
+    return agentes[idx];
+};
 ```
 
-E também, nos agentes iniciais, o ID é gerado dinamicamente:
+Isso está correto, pois você ignora o `id` enviado no payload e mantém o ID original. Porém, no controller `updateAgente`, você não faz essa proteção explícita antes de chamar o repository. Se o cliente enviar um payload com `id` diferente, e seu controller não remover, pode causar inconsistências.
+
+**Recomendo garantir no controller que o `id` não seja alterado, ou pelo menos documentar que o repository já faz essa proteção.**
+
+---
+
+### 3. Penalidade: IDs usados nos casos não são UUID válidos
+
+No seu `repositories/casosRepository.js`, o array inicial `casos` tem um objeto com `agente_id` fixo:
 
 ```js
 {
     "id": uuidv4(),
-    "nome": "Rommel Carneiro",
-    ...
+    "titulo": "homicidio",
+    "descricao": "...",
+    "status": "aberto",
+    "agente_id": "401bccf5-cf9e-489d-8412-446cd169a0f1" 
 }
 ```
 
-Isso gera IDs diferentes a cada execução, e o ID fixo no caso não vai existir na lista de agentes (porque o agente tem um ID diferente a cada execução).
+Esse `agente_id` está fixo e não corresponde a um UUID válido (ele tem 35 caracteres e não está no formato UUID padrão). Isso pode causar falha na validação do agente ao criar ou atualizar casos.
 
-**Consequência:** Quando você tenta criar ou atualizar um caso referenciando um agente pelo `agente_id`, a busca por esse agente falha, retornando 404 "Agente não encontrado".
-
-**Como corrigir:**
-
-- Para testes e consistência, defina IDs fixos (strings UUID válidas) para os agentes e casos iniciais. Por exemplo:
+**Solução:** Use um `agente_id` que seja um UUID válido e que exista no array de agentes, ou gere dinamicamente. Por exemplo:
 
 ```js
 const agentes = [
-    {
-        id: "11111111-1111-1111-1111-111111111111",
-        nome: "Rommel Carneiro",
-        dataDeIncorporacao: "1992-10-04",
-        cargo: "delegado"
-    }
+  {
+    id: 'a1b2c3d4-e5f6-7890-abcd-1234567890ab',
+    nome: "Rommel Carneiro",
+    dataDeIncorporacao: "1992-10-04",
+    cargo: "delegado"
+  }
 ];
+
+// E no caso:
+{
+    id: uuidv4(),
+    titulo: "homicidio",
+    descricao: "...",
+    status: "aberto",
+    agente_id: 'a1b2c3d4-e5f6-7890-abcd-1234567890ab'
+}
 ```
 
-E no caso:
-
-```js
-const casos = [
-    {
-        id: uuidv4(),
-        titulo: "homicidio",
-        descricao: "...",
-        status: "aberto",
-        agente_id: "11111111-1111-1111-1111-111111111111"
-    }
-];
-```
-
-Assim, o `agente_id` do caso sempre vai existir na lista de agentes.
-
-- Ou, se preferir manter o `uuidv4()` dinâmico, garanta que o agente criado tenha seu ID usado para os casos relacionados.
+Isso evita erros de validação e garante integridade referencial.
 
 ---
 
-### 4. **Status Code para DELETE**
+### 4. Resposta no DELETE retorna status 204 com corpo JSON
 
-No seu controller de agentes, no método `deleteAgente`, você retorna status 204 (No Content) e envia um JSON com mensagem:
+Nos métodos `deleteAgente` e `deleteCaso`, você faz:
 
 ```js
 res.status(204).json({ message: 'Agente removido com sucesso' });
 ```
 
-O status 204 indica que a resposta não deve ter corpo, então enviar JSON junto pode causar problemas.
+O status HTTP 204 significa **No Content**, ou seja, não deve retornar corpo na resposta. Isso pode causar problemas em clientes que esperam resposta vazia.
 
-**Como corrigir:** Para 204, envie a resposta sem conteúdo:
+**Solução:** Use apenas `res.status(204).send()` ou `res.status(204).end()` para indicar sucesso sem corpo:
 
 ```js
 res.status(204).send();
 ```
 
-Ou, se quiser enviar mensagem, use status 200:
-
-```js
-res.status(200).json({ message: 'Agente removido com sucesso' });
-```
-
-Repita o mesmo ajuste para o método `deleteCaso`.
+Se quiser enviar uma mensagem, use status 200.
 
 ---
 
-### 5. **Validação de Payload e Tratamento de Erros**
+### 5. Filtros e funcionalidades bônus não implementados
 
-Você fez um bom trabalho validando os dados, mas percebi que em alguns pontos a mensagem de erro não é clara ou o status retornado pode ser melhorado.
+Vi que você não implementou os filtros, ordenação e mensagens de erro customizadas para filtros, que são bônus do desafio. Isso é compreensível, pois já tem bastante coisa implementada e funcionando.
 
-Por exemplo, no `controllers/agentesController.js`:
-
-```js
-catch (error) {
-    res.status(400).json({ message: 'Erro ao criar novo agente', error: error.message });
-};
-```
-
-Está ótimo, mas para erros que são internos do servidor (ex: falha inesperada no repositório), o status 500 seria mais adequado.
-
-**Dica:** Diferencie erros de validação (400) de erros inesperados (500) para deixar a API mais robusta.
-
----
-
-### 6. **Filtros e Ordenação (Bônus) Ainda Não Implementados**
-
-Vi que você tentou implementar filtros e ordenação, mas os testes indicam que esses recursos não estão funcionando ou não foram implementados.
-
-Esses recursos são importantes para deixar a API mais completa e profissional.
-
-**Sugestão:** Comece implementando filtros simples via query params, por exemplo:
+Caso queira evoluir, recomendo começar a implementar filtros via query params no endpoint GET de `/casos` e `/agentes`, por exemplo:
 
 ```js
-// Em casosRoutes.js
-router.get('/', (req, res) => {
-    const { status, agente_id, titulo } = req.query;
-    // lógica para filtrar casos conforme esses parâmetros
+// Exemplo simples na rota de casos
+router.get('/', async (req, res) => {
+  const { status, agente_id } = req.query;
+  let casos = await Caso.findAll();
+
+  if (status) {
+    casos = casos.filter(caso => caso.status === status);
+  }
+  if (agente_id) {
+    casos = casos.filter(caso => caso.agente_id === agente_id);
+  }
+
+  res.json(casos);
 });
 ```
 
-E depois vá adicionando ordenação e filtros mais complexos.
-
 ---
 
-### 7. **Organização da Estrutura de Diretórios**
+## 📚 Recursos que vão te ajudar a corrigir e evoluir seu projeto
 
-Sua estrutura de pastas está correta! Você tem:
-
-```
-routes/
-controllers/
-repositories/
-docs/
-utils/
-server.js
-package.json
-```
-
-Isso é excelente e segue o padrão esperado para projetos Node.js com Express e arquitetura modular.
-
----
-
-## 📚 Recursos que Recomendo para Você Estudar e Fixar Esses Conceitos
-
-- Para entender melhor o uso correto do Express e a organização das rotas e controllers, veja:  
-  https://expressjs.com/pt-br/guide/routing.html
-
-- Para aprofundar na arquitetura MVC aplicada ao Node.js/Express:  
-  https://youtu.be/bGN_xNc4A1k?si=Nj38J_8RpgsdQ-QH
-
-- Para aprender a validar dados e tratar erros de forma robusta em APIs REST:  
-  https://youtu.be/yNDCRAz7CM8?si=Lh5u3j27j_a4w3A_
-
-- Para entender melhor os status HTTP e quando usar cada um (200, 201, 204, 400, 404, 500):  
-  https://youtu.be/RSZHvQomeKE
-
-- Para manipulação correta de arrays e objetos em memória (find, findIndex, splice):  
+- Para entender melhor como trabalhar com rotas e middlewares no Express, recomendo muito este vídeo:  
+  https://youtu.be/RSZHvQomeKE  
+- Para validar dados e tratar erros corretamente, veja este conteúdo que explica o status 400 e 404:  
+  https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/400  
+  https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/404  
+- Para garantir que IDs são UUIDs válidos e evitar erros no relacionamento, entenda mais sobre UUIDs e validação:  
+  https://expressjs.com/pt-br/guide/routing.html (para rotas e parâmetros)  
+- Para melhorar sua manipulação de arrays e filtros, confira:  
   https://youtu.be/glSgUKA5LjE?si=t9G2NsC8InYAU9cI
 
 ---
 
-## 💡 Dicas Extras para Você Continuar Evoluindo
+## 🗂️ Sobre a estrutura do seu projeto
 
-- Padronize os formatos de data em toda a API para evitar confusão e erros de validação.
-
-- Use IDs UUID fixos nos dados iniciais para garantir que as referências entre agentes e casos sejam consistentes.
-
-- Teste cada endpoint isoladamente com ferramentas como Postman ou Insomnia para garantir que o fluxo está funcionando como esperado.
-
-- Invista em mensagens de erro claras e códigos HTTP corretos para facilitar a vida de quem for consumir sua API.
-
-- Continue explorando filtros e ordenação, pois são diferenciais importantes em APIs reais.
+Sua estrutura está perfeita! Você seguiu a arquitetura modular, com pastas separadas para routes, controllers, repositories, utils e docs. Isso é fundamental para projetos escaláveis e fáceis de manter. Continue assim! 🚀
 
 ---
 
-## 📝 Resumo dos Principais Pontos para Focar
+## 💡 Resumo rápido dos principais pontos para focar:
 
-- [ ] Corrigir o formato das datas para usar `YYYY-MM-DD` com hífens nas validações de agentes e casos.
-
-- [ ] Ajustar os dados iniciais para usar IDs UUID fixos e consistentes entre agentes e casos.
-
-- [ ] Corrigir o retorno do status 204 para não enviar corpo de resposta.
-
-- [ ] Diferenciar erros de validação (400) e erros internos (500) no tratamento de erros.
-
-- [ ] Implementar filtros e ordenação nos endpoints `/casos` e `/agentes` para atender os bônus.
-
-- [ ] Testar bem cada endpoint com ferramentas externas para garantir o comportamento esperado.
+- [ ] No PATCH de casos, valide `agente_id` somente se ele for enviado no corpo da requisição.
+- [ ] Corrija o `agente_id` fixo no array inicial de casos para um UUID válido e que exista no array de agentes.
+- [ ] No DELETE, não envie corpo junto com status 204. Use `res.status(204).send()`.
+- [ ] Garanta que o ID do agente não possa ser alterado via PUT (o repository já trata, mas fique atento).
+- [ ] Considere implementar filtros e ordenação para os endpoints como um próximo passo.
+- [ ] Continue aprimorando as mensagens de erro para torná-las mais amigáveis e customizadas.
 
 ---
 
-Alexandre, você está no caminho certo para se tornar um desenvolvedor Node.js muito competente! 🚀 Continue praticando, corrigindo esses detalhes, e logo sua API estará tinindo, pronta para ser usada em qualquer sistema. Qualquer dúvida, estou aqui para ajudar! 😉
+Alexandre, você está com uma base muito boa e já entregou um trabalho consistente! Com esses ajustes, sua API vai ficar muito mais robusta e alinhada com as boas práticas do desenvolvimento RESTful. Tenho certeza que você vai conseguir superar esses desafios rapidinho! 🚀✨
 
-Abraços e bons códigos! 👊💙
+Conte comigo para o que precisar, siga firme e continue codando com essa dedicação! 💪👨‍💻
+
+Um abraço do seu Code Buddy! 🤖❤️
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
