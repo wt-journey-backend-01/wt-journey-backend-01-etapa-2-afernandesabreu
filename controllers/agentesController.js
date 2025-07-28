@@ -6,7 +6,7 @@ function validarAgente(dados) {
         throw new Error('Nome do agente é obrigatório e não pode ser vazio.');
     };
     // Validar formato e data não futura para dataDeIncorporacao
-    if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dataDeIncorporacao)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataDeIncorporacao)) {
         throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
     };
     const data = new Date(dataDeIncorporacao);
