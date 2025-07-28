@@ -46,7 +46,19 @@ const { getAllAgentes, getAgenteById, createAgente, updateAgente, patchAgente, d
  *               items:
  *                 $ref: '#/components/schemas/Agente'
  */
-router.get('/', getAllAgentes);
+router.get('/', async (req, res) => {
+  const { cargo, nome } = req.query;
+  let agentes = await require('../repositories/agentesRepository').findAll();
+
+  if (cargo) {
+    agentes = agentes.filter(agente => agente.cargo === cargo);
+  }
+  if (nome) {
+    agentes = agentes.filter(agente => agente.nome.includes(nome));
+  }
+
+  res.json(agentes);
+});
 
 /**
  * @swagger
