@@ -1,4 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
+const agente_id = 'a1b2c3d4-e5f6-7890-abcd-1234567890ab';
+
 
 const casos = [
     {
@@ -6,7 +8,7 @@ const casos = [
         "titulo": "homicidio",
         "descricao": "Disparos foram reportados às 22:33 do dia 10/07/2007 na região do bairro União, resultando na morte da vítima, um homem de 45 anos.",
         "status": "aberto",
-        "agente_id": "401bccf5-cf9e-489d-8412-446cd169a0f1" 
+        "agente_id": agente_id 
     }
 ]
 
