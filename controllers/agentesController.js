@@ -104,7 +104,7 @@ const deleteAgente = async (req, res) => {
         if (!agente) {
             return res.status(404).json({ message: 'Agente não encontrado' });
         };
-        res.status(204).json({ message: 'Agente removido com sucesso' });
+        res.status(200).json({ message: 'Agente removido com sucesso' });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao deletar agente', error: error.message });
     };
