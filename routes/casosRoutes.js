@@ -18,7 +18,19 @@ const { getAllCasos, getCasoById, createCaso, updateCaso, patchCaso, deleteCaso 
  *               items:
  *                 $ref: '#/components/schemas/Caso'
  */
-router.get('/', getAllCasos);
+router.get('/', async (req, res) => {
+  const { status, agente_id } = req.query;
+  let casos = await require('../repositories/casosRepository').findAll();
+
+  if (status) {
+    casos = casos.filter(caso => caso.status === status);
+  }
+  if (agente_id) {
+    casos = casos.filter(caso => caso.agente_id === agente_id);
+  }
+
+  res.json(casos);
+});
 
 /**
  * @swagger
