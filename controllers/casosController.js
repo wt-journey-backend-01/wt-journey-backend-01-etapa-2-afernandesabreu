@@ -8,8 +8,8 @@ function validarCaso(dados) {
         throw new Error('Título do caso é obrigatório e não pode ser vazio.');
     }
 
-    if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dataDeRegistro)) {
-        throw new Error('Data de registro deve estar no formato YYYY/MM/DD.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataDeRegistro)) {
+        throw new Error('Data de registro deve estar no formato YYYY-MM-DD.');
     }
     const data = new Date(dataDeRegistro);
     const hoje = new Date();
@@ -27,8 +27,8 @@ function validarCasoParcial(dados) {
         throw new Error('Título do caso não pode ser vazio.');
     }
     if (dados.dataDeRegistro !== undefined) {
-        if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dados.dataDeRegistro)) {
-            throw new Error('Data de registro deve estar no formato YYYY/MM/DD.');
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dados.dataDeRegistro)) {
+            throw new Error('Data de registro deve estar no formato YYYY-MM-DD.');
         }
         const data = new Date(dados.dataDeRegistro);
         const hoje = new Date();
@@ -58,7 +58,7 @@ const getCasoById = async (req, res) => {
         };
         res.status(200).json(caso);
     } catch (error) {
-        res.status(500).json({ message: 'Error ao tentar encontrar caso especificado' });
+        res.status(500).json({ message: 'Erro ao tentar encontrar caso especificado' });
     };
 };
 
@@ -120,7 +120,7 @@ const deleteCaso = async (req, res) => {
         };
         res.status(204).json({ message: 'Caso removido com sucesso' });
     } catch (error) {
-        res.status(500).json({ message: 'Erro ao deletar caso' });
+        res.status(500).json({ message: 'Erro ao deletar caso', error: error.message });
     };
 };
 
