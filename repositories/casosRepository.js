@@ -1,16 +1,15 @@
 const { v4: uuidv4 } = require('uuid');
-const agente_id = 'a1b2c3d4-e5f6-7890-abcd-1234567890ab';
-
+const agente_id = require('./agentesRepository').agentes[0].id;
 
 const casos = [
     {
         "id": uuidv4(),
         "titulo": "homicidio",
-        "descricao": "Disparos foram reportados às 22:33 do dia 10/07/2007 na região do bairro União, resultando na morte da vítima, um homem de 45 anos.",
+        "descricao": "...",
         "status": "aberto",
-        "agente_id": agente_id 
+        "agente_id": agente_id
     }
-]
+];
 
 const findAll = async () => {
     return casos;
@@ -43,6 +42,18 @@ const update = async (id, dados) => {
     return casos[idx];
 };
 
+const patch = async (id, dadosParciais) => {
+    const idx = casos.findIndex(caso => caso.id === id);
+    if (idx === -1) return null;
+
+    casos[idx] = {
+        ...casos[idx],
+        ...dadosParciais
+    };
+
+    return casos[idx];
+};
+
 const deleteCaso = async (id) => {
     const idx = casos.findIndex((caso) => caso.id === id);
     if (idx === -1) return null;
@@ -51,4 +62,4 @@ const deleteCaso = async (id) => {
     return casoRemovido[0];
 };
 
-module.exports = { findAll, findById, create, update, delete: deleteCaso };
+module.exports = { findAll, findById, create, update, patch, delete: deleteCaso };
