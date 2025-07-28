@@ -5,7 +5,6 @@ function validarAgente(dados) {
     if (!nome || nome.trim() === '') {
         throw new Error('Nome do agente é obrigatório e não pode ser vazio.');
     };
-    // Validar formato e data não futura para dataDeIncorporacao
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dataDeIncorporacao)) {
         throw new Error('Data de incorporação deve estar no formato YYYY-MM-DD.');
     };
@@ -77,7 +76,7 @@ const updateAgente = async (req, res) => {
         };
         validarAgente(req.body);
         const { id, ...dadosSemID } = req.body;
-        const agente = await Agente.update(req.params.id, req.body);
+        const agente = await Agente.update(req.params.id, dadosSemID);
         res.status(200).json(agente);
     } catch (error) {
         res.status(400).json({ message: 'Erro ao atualizar agente', error: error.message });
