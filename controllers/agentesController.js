@@ -76,6 +76,7 @@ const updateAgente = async (req, res) => {
             return res.status(404).json({ message: 'Agente não encontrado' });
         };
         validarAgente(req.body);
+        const { id, ...dadosSemID } = req.body;
         const agente = await Agente.update(req.params.id, req.body);
         res.status(200).json(agente);
     } catch (error) {
