@@ -1,13 +1,14 @@
 const { v4: uuidv4 } = require('uuid');
+const agente_id = 'a1b2c3d4-e5f6-7890-abcd-1234567890ab';
 
 const agentes = [
     {
-        "id": uuidv4(),
+        "id": agente_id,
         "nome": "Rommel Carneiro",
         "dataDeIncorporacao": "1992-10-04",
         "cargo": "delegado"
     }
-]
+];
 
 const findAll = async () => {
     return agentes;
