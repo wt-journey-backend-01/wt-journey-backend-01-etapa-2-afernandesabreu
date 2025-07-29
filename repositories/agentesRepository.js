@@ -41,6 +41,18 @@ const update = async (id, dados) => {
     return agentes[idx];
 };
 
+const patch = async (id, dadosParciais) => {
+    const idx = agentes.findIndex(agente => agente.id === id);
+    if (idx === -1) return null;
+
+    agentes[idx] = {
+        ...agentes[idx],
+        ...dadosParciais
+    };
+
+    return agentes[idx];
+};
+
 const deleteAgente = async (id) => {
     const idx = agentes.findIndex((agente) => agente.id === id);
     if (idx === -1) return null;
@@ -49,5 +61,5 @@ const deleteAgente = async (id) => {
     return agenteRemovido[0];
 };
 
-module.exports = { agentes, findAll, findById, create, update, delete: deleteAgente }
+module.exports = { agentes, findAll, findById, create, update, patch, delete: deleteAgente }
 
