@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
+const { agentes } = require('./agentesRepository');
 const agente_id = require('./agentesRepository').agentes[0].id;
 
 const casos = [
