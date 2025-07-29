@@ -18,15 +18,30 @@ const { getAllCasos, getCasoById, createCaso, updateCaso, patchCaso, deleteCaso 
  *               items:
  *                 $ref: '#/components/schemas/Caso'
  */
+
+
 router.get('/', async (req, res) => {
-  const { status, agente_id } = req.query;
+  const { status, agente_id, keywords } = req.query;
   let casos = await require('../repositories/casosRepository').findAll();
+
+  if (sort && sort !== 'asc' && sort !== 'desc') {
+    return res.status(400).json({ message: 'Parâmetro sort deve ser "asc" ou "desc".' });
+  }
 
   if (status) {
     casos = casos.filter(caso => caso.status === status);
   }
   if (agente_id) {
     casos = casos.filter(caso => caso.agente_id === agente_id);
+  }
+  if (keywords) {
+    const termos = keywords.toLowerCase().split(' ');
+    casos = casos.filter(caso =>
+      termos.every(termo =>
+        caso.titulo.toLowerCase().includes(termo) ||
+        caso.descricao.toLowerCase().includes(termo)
+      )
+    );
   }
 
   res.json(casos);

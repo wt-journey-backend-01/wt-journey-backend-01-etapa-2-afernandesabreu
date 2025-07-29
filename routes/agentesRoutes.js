@@ -46,8 +46,10 @@ const { getAllAgentes, getAgenteById, createAgente, updateAgente, patchAgente, d
  *               items:
  *                 $ref: '#/components/schemas/Agente'
  */
+
+
 router.get('/', async (req, res) => {
-  const { cargo, nome } = req.query;
+  const { cargo, nome, sort } = req.query;
   let agentes = await require('../repositories/agentesRepository').findAll();
 
   if (cargo) {
@@ -55,6 +57,17 @@ router.get('/', async (req, res) => {
   }
   if (nome) {
     agentes = agentes.filter(agente => agente.nome.includes(nome));
+  }
+
+    if (sort && sort !== 'asc' && sort !== 'desc') {
+    return res.status(400).json({ message: 'Parâmetro sort deve ser "asc" ou "desc".' });
+  }
+
+  
+  if (sort === 'asc') {
+    agentes.sort((a, b) => new Date(a.dataDeIncorporacao) - new Date(b.dataDeIncorporacao));
+  } else if (sort === 'desc') {
+    agentes.sort((a, b) => new Date(b.dataDeIncorporacao) - new Date(a.dataDeIncorporacao));
   }
 
   res.json(agentes);
