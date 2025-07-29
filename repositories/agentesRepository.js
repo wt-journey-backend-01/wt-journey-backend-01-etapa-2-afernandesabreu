@@ -49,5 +49,5 @@ const deleteAgente = async (id) => {
     return agenteRemovido[0];
 };
 
-module.exports = { findAll, findById, create, update, delete: deleteAgente }
+module.exports = { agentes, findAll, findById, create, update, delete: deleteAgente }
 
